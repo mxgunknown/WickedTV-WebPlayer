@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WickedTV Live</title>
+  <link rel="stylesheet" href="live.css">
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <input type="text" id="categorySearch" placeholder="Search Category">
+      <div id="categoryList"></div>
+    </div>
+
+    <div class="channel-list">
+      <div id="channelList"></div>
+    </div>
+
+    <div class="player-panel">
+      <video id="videoPlayer" controls autoplay></video>
+      <div id="epgInfo" class="epg-info"></div>
+    </div>
+  </div>
+
+  <script src="live.js"></script>
+</body>
+</html>
