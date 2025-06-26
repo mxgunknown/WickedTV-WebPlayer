@@ -1,4 +1,4 @@
-const apiUrl = "http://playwithme.pw/player_api.php";
+const apiUrl = "https://playwithme.pw/player_api.php";
 const user = JSON.parse(localStorage.getItem("xtream_user"));
 
 if (!user) {
@@ -31,7 +31,7 @@ function renderChannels(channels) {
 
 function playStream(id) {
   const video = document.getElementById("videoPlayer");
-  video.src = `http://playwithme.pw:8080/live/${username}/${password}/${id}.m3u8`;
+  video.src = `https://playwithme.pw:8080/live/${username}/${password}/${id}.m3u8`;
   video.play();
   fetchEPG(id);
 }
