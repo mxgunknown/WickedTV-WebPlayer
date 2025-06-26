@@ -8,10 +8,37 @@ if (!user) {
 const username = user.user_info.username;
 const password = user.user_info.password;
 
+let allChannels = [];
+
+async function fetchCategories() {
+  const res = await fetch(`${apiUrl}?username=${username}&password=${password}&action=get_live_categories`);
+  const categories = await res.json();
+  renderCategories(categories);
+}
+
+function renderCategories(categories) {
+  const list = document.getElementById("categoryList");
+  list.innerHTML = "";
+  categories.forEach(cat => {
+    const item = document.createElement("div");
+    item.textContent = cat.category_name;
+    item.dataset.id = cat.category_id;
+    item.className = "category-item";
+    item.onclick = () => filterChannels(cat.category_id);
+    list.appendChild(item);
+  });
+}
+
 async function fetchChannels() {
   const res = await fetch(`${apiUrl}?username=${username}&password=${password}&action=get_live_streams`);
   const data = await res.json();
+  allChannels = data;
   renderChannels(data);
+}
+
+function filterChannels(categoryId) {
+  const filtered = allChannels.filter(ch => ch.category_id === categoryId);
+  renderChannels(filtered);
 }
 
 function renderChannels(channels) {
@@ -24,15 +51,21 @@ function renderChannels(channels) {
       <img src="${ch.stream_icon}" onerror="this.src='assets/default.png'">
       <span>${ch.name}</span>
     `;
-    item.onclick = () => playStream(ch.stream_id);
+    item.onclick = () => playStream(ch.stream_id, ch.name);
     list.appendChild(item);
   });
 }
 
-function playStream(id) {
+function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-  video.src = `https://playwithme.pw:8080/live/${username}/${password}/${id}.m3u8`;
-  video.play();
+  const urlBase = `https://playwithme.pw:8080/live/${username}/${password}/${id}`;
+  video.src = `${urlBase}.m3u8`;
+  video.play().catch(() => {
+    video.src = `${urlBase}.ts`;
+    video.play();
+  });
+
+  document.getElementById("epgInfo").innerHTML = `<h3>${name}</h3>`;
   fetchEPG(id);
 }
 
@@ -40,7 +73,6 @@ async function fetchEPG(id) {
   const res = await fetch(`${apiUrl}?username=${username}&password=${password}&action=get_short_epg&stream_id=${id}`);
   const data = await res.json();
   const epg = document.getElementById("epgInfo");
-  epg.innerHTML = "";
   data.epg_listings?.forEach((e, i) => {
     const div = document.createElement("div");
     div.innerHTML = `<div class="${i === 0 ? 'now' : ''}">${e.start} - ${e.end} <strong>${e.title}</strong></div>`;
@@ -48,4 +80,5 @@ async function fetchEPG(id) {
   });
 }
 
+fetchCategories();
 fetchChannels();
