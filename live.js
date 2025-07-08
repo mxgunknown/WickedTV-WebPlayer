@@ -59,12 +59,21 @@ function renderChannels(channels) {
 
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-  const urlBase = `${proxyUrl}/live/${username}/${password}/${id}`;
+  const url = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}.ts`;
 
-  // Set .ts file directly
-  video.src = `${urlBase}.ts`;
-  video.play().catch(() => {
+  video.src = url;
+  video.load();
+
+  const onError = () => {
     alert("Stream failed to load.");
+    video.removeEventListener("error", onError);
+  };
+
+  video.addEventListener("error", onError);
+
+  video.play().catch(() => {
+    // fallback logic if browser still won't play it
+    alert("Stream playback failed.");
   });
 
   document.getElementById("epgInfo").innerHTML = `<h3>${name}</h3>`;
