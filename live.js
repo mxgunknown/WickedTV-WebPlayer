@@ -59,26 +59,30 @@ function renderChannels(channels) {
 
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-  const url = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}.ts`;
+  const url = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}.m3u8`;
 
-  video.src = url;
-  video.load();
-
-  const onError = () => {
-    alert("Stream failed to load.");
-    video.removeEventListener("error", onError);
-  };
-
-  video.addEventListener("error", onError);
-
-  video.play().catch(() => {
-    // fallback logic if browser still won't play it
-    alert("Stream playback failed.");
-  });
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.ERROR, function (_, data) {
+      console.error("HLS.js error:", data);
+      alert("Stream failed to load.");
+    });
+  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = url;
+    video.addEventListener("error", () => {
+      alert("Stream failed to load.");
+    });
+    video.play();
+  } else {
+    alert("Your browser does not support HLS playback.");
+  }
 
   document.getElementById("epgInfo").innerHTML = `<h3>${name}</h3>`;
   fetchEPG(id);
 }
+
 
 async function fetchEPG(id) {
   const res = await fetch(`${apiUrl}?username=${username}&password=${password}&action=get_short_epg&stream_id=${id}`);
