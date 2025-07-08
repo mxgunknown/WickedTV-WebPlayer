@@ -1,4 +1,5 @@
 const apiUrl = "https://playwithme.pw/player_api.php";
+const proxyUrl = "https://wickedtv-proxy.onrender.com";
 const user = JSON.parse(localStorage.getItem("xtream_user"));
 
 if (!user) {
@@ -58,32 +59,14 @@ function renderChannels(channels) {
 
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-  const urlBase = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}`;
-  const m3u8Url = `${urlBase}.m3u8`;
+  const urlBase = `${proxyUrl}/live/${username}/${password}/${id}`;
 
-  if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(m3u8Url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      video.play();
-    });
-    hls.on(Hls.Events.ERROR, (_, data) => {
-      console.error("HLS.js error:", data);
-      alert("Stream failed to load.");
-    });
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = m3u8Url;
-    video.addEventListener("loadedmetadata", () => {
-      video.play().catch(() => {
-        alert("Stream failed to load.");
-      });
-    });
-  } else {
-    alert("Your browser does not support HLS playback.");
-  }
+  // Set .ts file directly
+  video.src = `${urlBase}.ts`;
+  video.play().catch(() => {
+    alert("Stream failed to load.");
+  });
 
-  // Update EPG
   document.getElementById("epgInfo").innerHTML = `<h3>${name}</h3>`;
   fetchEPG(id);
 }
