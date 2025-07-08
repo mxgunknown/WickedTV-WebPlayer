@@ -58,16 +58,24 @@ function renderChannels(channels) {
 
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-
   const proxyBase = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}`;
 
-  video.src = `${proxyBase}?format=m3u8`;
-  video.play().catch(() => {
-    video.src = `${proxyBase}?format=ts`;
-    video.play().catch(() => {
-      alert("Stream failed to load.");
+  // First try .ts (confirmed working)
+  video.src = `${proxyBase}?format=ts`;
+  video.load();
+  video.play()
+    .then(() => console.log("✅ Playback started with .ts"))
+    .catch(err => {
+      console.warn("⚠️ TS failed, trying .m3u8...", err);
+      video.src = `${proxyBase}?format=m3u8`;
+      video.load();
+      video.play()
+        .then(() => console.log("✅ Playback started with .m3u8"))
+        .catch(err => {
+          console.error("❌ Playback failed completely", err);
+          alert("Stream failed to load.");
+        });
     });
-  });
 
   document.getElementById("epgInfo").innerHTML = `<h3>${name}</h3>`;
   fetchEPG(id);
