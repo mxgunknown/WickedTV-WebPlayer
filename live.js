@@ -19,6 +19,13 @@ async function fetchCategories() {
 function renderCategories(categories) {
   const list = document.getElementById("categoryList");
   list.innerHTML = "";
+
+  const allItem = document.createElement("div");
+  allItem.textContent = "All";
+  allItem.className = "category-item";
+  allItem.onclick = () => renderChannels(allChannels);
+  list.appendChild(allItem);
+
   categories.forEach(cat => {
     const item = document.createElement("div");
     item.textContent = cat.category_name;
@@ -44,6 +51,7 @@ function filterChannels(categoryId) {
 function renderChannels(channels) {
   const list = document.getElementById("channelList");
   list.innerHTML = "";
+
   channels.forEach((ch) => {
     const item = document.createElement("div");
     item.className = "channel-item";
@@ -58,24 +66,41 @@ function renderChannels(channels) {
 
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-  const urlBase = `https://playwithme.pw:8080/live/${username}/${password}/${id}`;
-  video.src = `${urlBase}.m3u8`;
+  const workerProxy = "https://wickedtv.maxgarbett1.workers.dev";
+
+  const m3u8 = `http://playwithme.pw:8080/live/${username}/${password}/${id}.m3u8`;
+  const ts = `http://playwithme.pw:8080/live/${username}/${password}/${id}.ts`;
+
+  video.src = `${workerProxy}/?url=${encodeURIComponent(m3u8)}`;
   video.play().catch(() => {
-    video.src = `${urlBase}.ts`;
-    video.play();
+    video.src = `${workerProxy}/?url=${encodeURIComponent(ts)}`;
+    video.play().catch(() => {
+      alert("Stream failed to load.");
+    });
   });
 
   document.getElementById("epgInfo").innerHTML = `<h3>${name}</h3>`;
   fetchEPG(id);
 }
 
+function decodeTitle(title) {
+  try {
+    if (/^[A-Za-z0-9+/=]{8,}$/.test(title)) {
+      return atob(title);
+    }
+  } catch {}
+  return title;
+}
+
 async function fetchEPG(id) {
   const res = await fetch(`${apiUrl}?username=${username}&password=${password}&action=get_short_epg&stream_id=${id}`);
   const data = await res.json();
   const epg = document.getElementById("epgInfo");
+
   data.epg_listings?.forEach((e, i) => {
+    const title = decodeTitle(e.title);
     const div = document.createElement("div");
-    div.innerHTML = `<div class="${i === 0 ? 'now' : ''}">${e.start} - ${e.end} <strong>${e.title}</strong></div>`;
+    div.innerHTML = `<div class="${i === 0 ? 'now' : ''}">${e.start} - ${e.end} <strong>${title}</strong></div>`;
     epg.appendChild(div);
   });
 }
